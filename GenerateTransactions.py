@@ -7,11 +7,13 @@ def main():
     parser = argparse.ArgumentParser(description='Provide budgets to generate transactions list')
     parser.add_argument('csv_name', help='String name of the csv file with budget info in three '
                                          'columns, see template.csv')
+    parser.add_argument('transaction_csv', help='transactions written to this csv, make sure different from the first '
+                                                'csv sheet')
     args = parser.parse_args()
     account_dict = read_csv(args.csv_name)
     check_valid_account(account_dict)
     transaction_dict = generate_transactions(account_dict)
-    print(transaction_dict)
+    write_csv(args.transaction_csv, transaction_dict)
 
 
 def read_csv(csv_name):
@@ -54,12 +56,12 @@ def generate_transactions(account_dict):
                     max_val, min_val = v, v2
 
         transaction_amount = min(max_val, abs(min_val))
-        print(f'min_key: {min_key}, max_key: {max_key}, transaction_amount: {transaction_amount}\n')
-        print(account_dict)
+        # print(f'min_key: {min_key}, max_key: {max_key}, transaction_amount: {transaction_amount}\n')
+        # print(account_dict)
         transaction_dict[transaction_number] = [min_key, max_key, transaction_amount]
         account_dict[max_key] -= transaction_amount
         account_dict[min_key] += transaction_amount
-        #print(f'{transaction_dict}\n')
+        # print(f'{transaction_dict}\n')
     return transaction_dict
 
 
@@ -70,6 +72,18 @@ def not_balanced(account_dict):
         if v != 0:
             return True
     return False
+
+
+def write_csv(transaction_csv, transaction_dict):
+    """write results to new csv file to view transactions"""
+    with open(transaction_csv, mode="w") as csv_file:
+        fieldnames = ['Transaction Number', 'From (Project)', 'To (Project)', 'Transaction Amount']
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+
+        writer.writeheader()
+        for k, v in transaction_dict.items():
+            writer.writerow({'Transaction Number': k, 'From (Project)': v[0], 'To (Project)': v[1],
+                             'Transaction Amount': v[2]})
 
 
 if __name__ == "__main__":
