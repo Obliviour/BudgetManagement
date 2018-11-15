@@ -26,14 +26,18 @@ def read_csv(csv_name):
             # print(f'row: {row}')
             if line_count == 0:
                 keys = [k for k, _ in row.items()]
-            account_dict[row[keys[0]]] = float(row[keys[2]]) - float(row[keys[1]])
+
+            after = float("{0:.2f}".format(float(row[keys[2]])))
+            before = float("{0:.2f}".format(float(row[keys[1]])))
+            account_dict[row[keys[0]]] = after - before
             line_count += 1
     return account_dict
 
 
 def check_valid_account(account_dict):
     """check that the starting balance and ending balance sum up to the same"""
-    if sum(account_dict.values()) != 0:
+    if sum(account_dict.values()) >= 1e-5:
+        print(sum(account_dict.values()))
         print("Improper Account Information, Check that Overall Start and End Budget are the same\n")
         raise(Exception("Improper Account Information, Check that Overall Start and End Budget are the same"))
     return
@@ -52,16 +56,17 @@ def generate_transactions(account_dict):
             for k2, v2 in account_dict.items():
                 if v == -v2 and v != 0:
                     # simplified transaction
-                    max_key, min_key = k, k2
-                    max_val, min_val = v, v2
+                    max_key, min_key = k2, k
+                    max_val, min_val = v2, v
 
         transaction_amount = min(max_val, abs(min_val))
-        # print(f'min_key: {min_key}, max_key: {max_key}, transaction_amount: {transaction_amount}\n')
-        # print(account_dict)
+        transaction_amount = float("{0:.2f}".format(transaction_amount))
+        print(f'min_key: {min_key}, max_key: {max_key}, transaction_amount: {transaction_amount}\n')
+        print(account_dict)
         transaction_dict[transaction_number] = [min_key, max_key, transaction_amount]
         account_dict[max_key] -= transaction_amount
         account_dict[min_key] += transaction_amount
-        # print(f'{transaction_dict}\n')
+        print(f'{transaction_dict}\n')
     return transaction_dict
 
 
@@ -69,7 +74,7 @@ def not_balanced(account_dict):
     """checks if accounts have been fulled balanced by checking if account differences are all zero
     if all accounts are zero, return False else return True"""
     for _, v in account_dict.items():
-        if v != 0:
+        if v >= 1e-5:
             return True
     return False
 
